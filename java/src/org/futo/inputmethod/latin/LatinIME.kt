@@ -367,6 +367,13 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
     override fun onCreate() {
         super.onCreate()
 
+        // Custom fork verification toast
+        android.widget.Toast.makeText(
+            this,
+            "Hello World - Custom Fork Working! 🚀",
+            android.widget.Toast.LENGTH_LONG
+        ).show()
+
         JniUtils.loadNativeLibrary()
 
         LayoutManager.init(this)
