@@ -5,11 +5,11 @@ on:
     branches: [ master ]
 
 env:
-  # Use the latest LTS Java version
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
+  # Phase 1: Parallel Jobs
   test:
     runs-on: ubuntu-latest
     steps:
@@ -43,19 +43,13 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Build debug APK
-        run: ./gradlew assembleUnstableDebug
-
-  build-and-release:
+  build-release-apk:
     runs-on: ubuntu-latest
-    needs: [test]
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -63,7 +57,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
 
-      - name: Cache Gradle packages
+      - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -88,6 +82,75 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Build release APK
+        run: ./gradlew assembleStableRelease
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: java/build/outputs/apk/stable/release/*.apk
+          retention-days: 1
+
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          build-tools: 34.0.0
+          cmake-version: 3.22.1
+          ndk-version: 26.1.10909125
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build debug APK
+        run: ./gradlew assembleUnstableDebug
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: java/build/outputs/apk/unstable/debug/*.apk
+          retention-days: 1
+
+  # Phase 2: Release Job (only after all Phase 1 jobs pass)
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [test, build-release-apk, build-debug-apk]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Generate version from commit
         id: version
         run: |
@@ -100,11 +163,17 @@ jobs:
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Build release APK
-        run: ./gradlew assembleStableRelease
+      - name: Download release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+          path: ./release-apks/
 
-      - name: Build debug APK
-        run: ./gradlew assembleUnstableDebug
+      - name: Download debug APK
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-apk
+          path: ./debug-apks/
 
       - name: Generate changelog
         id: changelog
@@ -130,10 +199,15 @@ jobs:
             ### Installation
             1. Download the APK below
             2. Enable keyboard in Android settings
+            
+            ### Build Info
+            - ✅ Tests passed
+            - ✅ Release APK built successfully  
+            - ✅ Debug APK built successfully
           draft: false
           prerelease: false
           files: |
-            java/build/outputs/apk/stable/release/*.apk
-            java/build/outputs/apk/unstable/debug/*.apk
+            ./release-apks/*.apk
+            ./debug-apks/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
