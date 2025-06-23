@@ -3,12 +3,7 @@ name: Build and Release APK
 
 on:
   push:
-    tags:
-      - 'v*'
-  workflow_dispatch:  # Allows manual triggering
-  pull_request:       # Test builds on PRs
-    branches: [ main, develop, master ]
-
+    branches: [ master ]
 env:
   # Use the latest LTS Java version
   JAVA_VERSION: '21'
