@@ -12,8 +12,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -157,12 +155,14 @@ jobs:
         tag_name: ${{ steps.version.outputs.VERSION }}
         name: "FUTO Keyboard Fork ${{ steps.version.outputs.VERSION }}"
         body: |
-          ## 🚀 FUTO Keyboard Fork Release ${{ steps.version.outputs.VERSION }}
+          ## 🚀 FUTO Keyboard Fork Auto-Release ${{ steps.version.outputs.VERSION }}
           
           ### Voice Agent Integration
           Custom FUTO Keyboard fork with integrated voice agent support.
           
-          ### Changes
+          **Auto-generated from commit:** `${{ github.sha }}`
+          
+          ### Recent Changes
           ${{ steps.changelog.outputs.CHANGELOG }}
           
           ### Installation
@@ -175,7 +175,7 @@ jobs:
           - Android 8.0+ (API level 26)
           - Tailscale app (for secure voice agent access)
         draft: false
-        prerelease: ${{ contains(steps.version.outputs.VERSION, 'beta') || contains(steps.version.outputs.VERSION, 'alpha') }}
+        prerelease: true
         files: |
           java/build/outputs/apk/stable/release/*.apk
           java/build/outputs/apk/unstable/debug/*.apk
