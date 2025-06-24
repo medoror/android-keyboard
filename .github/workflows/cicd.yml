@@ -170,12 +170,14 @@ jobs:
         run: |
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | tr -d '\n' | tr -d '\r')
           VERSION="v1.0.${COMMIT_COUNT}"
-          TAG_NAME="auto-release-${COMMIT_COUNT}-${SHORT_SHA}"
+          TAG_NAME="${VERSION}+${SHORT_SHA}"
           
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
+          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION (commit: $SHORT_SHA)"
 
       - name: Download release APK
         uses: actions/download-artifact@v4
@@ -203,9 +205,9 @@ jobs:
           tag_name: ${{ steps.version.outputs.TAG_NAME }}
           name: "${{ steps.version.outputs.VERSION }}"
           body: |
-            ## 🚀 Auto-Generated Release ${{ steps.version.outputs.VERSION }}
+            ## 🚀 Release ${{ steps.version.outputs.VERSION }}
             
-            **Built from commit:** `${{ github.sha }}`
+            **Latest commit:** ${{ steps.version.outputs.COMMIT_MSG }} (`${{ github.sha }}`)
             
             ### Recent Changes
             ${{ steps.changelog.outputs.CHANGELOG }}
