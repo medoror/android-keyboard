@@ -49,9 +49,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run tests
-        run: ./gradlew test
-        env:
-          GRADLE_OPTS: "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+        run: ./gradlew test testDebugUnitTest
 
   build-release-apk:
     runs-on: ubuntu-latest

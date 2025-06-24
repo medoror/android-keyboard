@@ -9,3 +9,14 @@ crashreporting.properties
 keystore.properties
 key.jks
 latinime/
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+.kotlin/
