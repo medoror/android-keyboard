@@ -50,6 +50,8 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test testDebugUnitTest
+        env:
+          GRADLE_OPTS: "-Xmx3g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError"
 
   build-release-apk:
     runs-on: ubuntu-latest
@@ -94,7 +96,7 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleStableRelease
         env:
-          GRADLE_OPTS: "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError"
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
@@ -146,7 +148,7 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleUnstableDebug
         env:
-          GRADLE_OPTS: "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError"
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
