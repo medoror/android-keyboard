@@ -102,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: java/build/outputs/apk/stable/release/*.apk
+          path: ./build/outputs/apk/stable/release/*.apk
           retention-days: 1
 
   build-debug-apk:
@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: java/build/outputs/apk/unstable/debug/*.apk
+          path: ./build/outputs/apk/unstable/debug/*.apk
           retention-days: 1
 
   # Phase 2: Release Job (only after all Phase 1 jobs pass)
