@@ -55,6 +55,7 @@ jobs:
 
   build-release-apk:
     runs-on: ubuntu-latest
+    needs: [test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -106,6 +107,7 @@ jobs:
 
   build-debug-apk:
     runs-on: ubuntu-latest
+    needs: [test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -158,7 +160,7 @@ jobs:
   # Phase 2: Release Job (only after all Phase 1 jobs pass)
   create-release:
     runs-on: ubuntu-latest
-    needs: [test, build-release-apk, build-debug-apk]
+    needs: [build-release-apk, build-debug-apk]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
